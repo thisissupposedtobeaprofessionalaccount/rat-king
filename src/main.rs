@@ -20,6 +20,10 @@ fn main() {
                 match stream {
                     Ok(stream) => {
                         handle_connection(stream, &mut instructions);
+
+                        if instructions.is_empty() {
+                            break;
+                        }
                     }
                     Err(_) => {}
                 }
@@ -27,6 +31,28 @@ fn main() {
         }
         Err(_e) => {}
     }
+}
+
+fn instructions_factory(source_instruction: &str) -> Vec<&str> {
+    let mut instructions = source_instruction.split("\n").collect::<Vec<&str>>();
+    instructions.pop();
+    let mut final_instructions : Vec<&str> = Vec::new();
+    let mut i = 0;
+
+    for instruction in &instructions {
+        match validate_instruction(instruction) {
+            Err(_) => {
+                eprintln!("Invalid instruction at line {} : {}", i + 1, instruction);
+            }
+            Ok(_) => {
+                final_instructions.push(instruction);
+            
+            },
+        }
+        i += 1;
+    }
+
+    final_instructions
 }
 
 fn validate_instruction(instruction: &str) -> Result<(), std::io::Error> {
@@ -56,27 +82,6 @@ fn validate_instruction(instruction: &str) -> Result<(), std::io::Error> {
             ));
         }
     }
-}
-fn instructions_factory(source_instruction: &str) -> Vec<&str> {
-    let mut instructions = source_instruction.split("\n").collect::<Vec<&str>>();
-    instructions.pop();
-    let mut final_instructions : Vec<&str> = Vec::new();
-    let mut i = 0;
-
-    for instruction in &instructions {
-        match validate_instruction(instruction) {
-            Err(_) => {
-                eprintln!("Invalid instruction at line {} : {}", i + 1, instruction);
-            }
-            Ok(_) => {
-                final_instructions.push(instruction);
-            
-            },
-        }
-        i += 1;
-    }
-
-    final_instructions
 }
 
 fn handle_connection(stream: TcpStream, instructions: &mut Vec<&str>) {
